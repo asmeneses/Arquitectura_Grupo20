@@ -1,0 +1,21 @@
+version: '3'
+services:
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "5001:5001"
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+
+  monitor:
+    build: ./monitor
+    depends_on:
+      - redis
+
+  subscriber:
+    build: ./subscriber
+    depends_on:
+      - redis
