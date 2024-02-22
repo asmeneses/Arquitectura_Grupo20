@@ -2,4 +2,4 @@ FROM python:3.8-alpine
 WORKDIR /app
 COPY . .
 RUN pip install redis
-CMD ["python", "subscriber.py"]
+CMD ["python", "cola_mensajes.py"]

@@ -15,7 +15,7 @@ services:
     depends_on:
       - redis
 
-  subscriber:
-    build: ./subscriber
+  cola-mensajes:
+    build: ./cola-mensajes
     depends_on:
       - redis
