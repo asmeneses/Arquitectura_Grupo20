@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 from redis import Redis
 from rq import Queue
 import sqlalchemy
+from datetime import datetime
+from registrar_usuario_background import registrar_usuario_background
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////mnt/registro.db'
@@ -19,7 +21,7 @@ def registrar_usuario():
     if not servicio_disponible:
         return jsonify({"error": "El servicio de registro no está disponible"}), 503
     usuario = request.json
-    q.enqueue(registrar_usuario_background, usuario)
+    q.enqueue(registrar_usuario_background, usuario, datetime.utcnow())
     return jsonify({"mensaje": "Usuario registrado exitosamente", "usuario": usuario}), 201
 
 @app.route('/usuario-comandos/health', methods=['GET'])
@@ -45,9 +47,6 @@ def desactivar_registro():
     return jsonify({
         "status": servicio_disponible
     })
-
-def registrar_usuario_background(usuario):
-    usuarios_registrados.append(usuario)
 
 
 if __name__ == '__main__':
