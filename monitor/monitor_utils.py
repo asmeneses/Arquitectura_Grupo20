@@ -1,4 +1,6 @@
-import subprocess
+import docker
+
+client = docker.from_env()
 
 def reiniciar_contenedor(nombre_contenedor):
     '''Reinicia una instancia de docker
@@ -6,9 +8,10 @@ def reiniciar_contenedor(nombre_contenedor):
             - nombre_contenedor: El nombre real o ID del contenedor
     '''
     try:
-        # Ejecutar el comando para reiniciar el contenedor
-        subprocess.check_call(['docker', 'restart', nombre_contenedor])
+        contenedor = client.containers.get(nombre_contenedor)
+        contenedor.restart()
         print(f"Contenedor {nombre_contenedor} reiniciado exitosamente.")
-    except subprocess.CalledProcessError as e:
-        # Manejar el caso en que el comando falla
+    except docker.errors.NotFound:
+        print(f"El contenedor {nombre_contenedor} no se encontró.")
+    except Exception as e:
         print(f"Error al reiniciar el contenedor {nombre_contenedor}: {e}")
