@@ -1,6 +1,7 @@
 import requests
 import redis
 import time
+from monitor_utils import reiniciar_contenedor
 
 def check_health():
     try:
@@ -19,13 +20,12 @@ def main():
     r = redis.Redis(host='redis', port=6379, db=0)
     while True:
         if check_health():
-            print("El servicio de registro está funcionando correctamente")
             r.publish('events', 'El servicio de registro está funcionando correctamente')                    
         else:
             # TODO: Implementar el reinicio del servicio
             print("El servicio de registro está caído, intentando reiniciar")
             r.publish('events', 'El servicio de registro está caído, intentando reiniciar')
-
+            reiniciar_contenedor('registro')
         time.sleep(1)
 
 if __name__ == '__main__':
