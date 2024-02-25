@@ -24,6 +24,7 @@ services:
       - registro
 
   monitor:
+    container_name: monitor
     volumes:
       - ./monitor/:/mnt/
       - /var/run/docker.sock:/var/run/docker.sock
@@ -35,6 +36,7 @@ services:
       - registro
 
   registro:
+    container_name: registro
     volumes:
       - ./registro/:/mnt/
     build: ./registro

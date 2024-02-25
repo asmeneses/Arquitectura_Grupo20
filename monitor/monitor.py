@@ -24,8 +24,8 @@ def main():
         else:
             # TODO: Implementar el reinicio del servicio
             print("El servicio de registro está caído, intentando reiniciar")
-            r.publish('events', 'El servicio de registro está caído, intentando reiniciar')
             reiniciar_contenedor('registro')
+            r.publish('events', 'El servicio de registro está caído, intentando reiniciar')            
         time.sleep(1)
 
 if __name__ == '__main__':
