@@ -1,19 +1,28 @@
 from flask import Flask, request, jsonify
+from redis import Redis
+from rq import Queue
+import sqlalchemy
+
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////mnt/registro.db'
+#db = sqlalchemy(app)
 
 usuarios_registrados = []
 servicio_disponible = True  # Simula la disponibilidad del servicio
 
-@app.route('/registro', methods=['POST'])
+q = Queue(connection=Redis(host='redis', port=6379, db=0))
+
+
+@app.route('/usuario-comandos/registro', methods=['POST'])
 def registrar_usuario():
     global servicio_disponible
     if not servicio_disponible:
         return jsonify({"error": "El servicio de registro no está disponible"}), 503
     usuario = request.json
-    usuarios_registrados.append(usuario)
+    q.enqueue(registrar_usuario_background, usuario)
     return jsonify({"mensaje": "Usuario registrado exitosamente", "usuario": usuario}), 201
 
-@app.route('/health', methods=['GET'])
+@app.route('/usuario-comandos/health', methods=['GET'])
 def health_check():
     global servicio_disponible
     if servicio_disponible:
@@ -21,7 +30,7 @@ def health_check():
     else:
         return jsonify({"status": "DOWN"}), 400
 
-@app.route('/activar-registro')
+@app.route('/usuario-comandos/activar-registro')
 def activar_registro():
     global servicio_disponible
     servicio_disponible = True
@@ -29,7 +38,7 @@ def activar_registro():
         "status": servicio_disponible
     })
 
-@app.route('/desactivar-registro')
+@app.route('/usuario-comandos/desactivar-registro')
 def desactivar_registro():
     global servicio_disponible
     servicio_disponible = False
@@ -37,5 +46,9 @@ def desactivar_registro():
         "status": servicio_disponible
     })
 
+def registrar_usuario_background(usuario):
+    usuarios_registrados.append(usuario)
+
+
 if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port=5002)
+    app.run(debug=True, host='0.0.0.0', port=5002)

@@ -1,5 +1,7 @@
-FROM python:3.8-alpine
-WORKDIR /app
-COPY . .
-RUN pip install redis
-CMD ["python", "registro.py"]
+FROM python:3
+RUN mkdir /backend
+WORKDIR /backend
+ADD requirements.txt /backend/
+RUN pip install -r requirements.txt
+ADD * /backend/
+EXPOSE 5002
