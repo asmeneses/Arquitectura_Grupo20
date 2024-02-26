@@ -17,16 +17,20 @@ def health_check():
     global servicio_registro
     return jsonify(servicio_registro)
 
+@app.route('/api/start', methods=['GET'])
 def startup():
     r = redis.Redis(host='redis', port=6379, db=0)
     pubsub = r.pubsub()
-    pubsub.subscribe(['server'])
+    pubsub.subscribe(['service'])
 
     print('Suscriptor esperando mensajes...')
     for message in pubsub.listen():
         if message['type'] == 'message':
             global servicio_registro
             servicio_registro = message['data'].decode('utf-8')
+            print(f'Usando Servicio: {servicio_registro}')
+
+    return True
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5002)
