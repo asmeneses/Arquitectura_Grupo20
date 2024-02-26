@@ -1,0 +1,1 @@
+python registro-ins-1.py
