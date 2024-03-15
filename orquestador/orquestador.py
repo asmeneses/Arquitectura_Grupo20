@@ -6,10 +6,18 @@ app = Flask(__name__)
 
 servicio_registro = 'http://registro1:5002/usuario-comandos-ins-1'
 
+servicio_autorizador = 'http://autorizador1:5002/autorizador-comandos'
+
 @app.route('/api/registro', methods=['POST'])
 def registrar_usuario():
     global servicio_registro
     peticion = post(f'{servicio_registro}/registro', json=request.json).json()
+    return jsonify(peticion)
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    global servicio_autorizador
+    peticion = post(f'{servicio_autorizador}/login', json=request.json).json()
     return jsonify(peticion)
 
 @app.route('/api/servicio', methods=['GET'])

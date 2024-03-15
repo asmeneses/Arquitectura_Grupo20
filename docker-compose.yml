@@ -13,7 +13,7 @@ services:
     command: rq worker -u 'redis://redis/0'
     depends_on:
       - redis
-      
+
   nginx:
     image: nginx:latest
     ports:
@@ -23,6 +23,7 @@ services:
     depends_on:
       - registro1
       - registro2
+      - autorizador1
       - orquestador
 
   monitor:
@@ -38,6 +39,16 @@ services:
       - registro1
       - registro2
       - orquestador
+
+  autorizador1:
+    container_name: autorizador1
+    volumes:
+      - ./autorizador/:/mnt/
+    build: ./autorizador
+    working_dir: /backend/
+    command: sh startup.sh
+    # depends_on:
+    #   - nginx
 
   registro1:
     container_name: registro1
