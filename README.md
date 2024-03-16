@@ -66,6 +66,8 @@ Una vez finalice la instalación se crearán los contenedores de docker y empeza
 
 * [Video demostración](https://uniandes-my.sharepoint.com/:v:/g/personal/a_menesess_uniandes_edu_co/EWuHWw3g84NKrUemf4VsXbIBH1csqF8Wn2te-x-MBlA_uw?e=79qBa4&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D)
 
+* [Mirror Video demostración](https://drive.google.com/file/d/1mpHJa1MyXow9aVhzCjKUG9XWVFeJGX5s/view?usp=sharing)
+
 1. clonar el repositorio en un espacio del area local de trabajo y abrirlo.
  
 2. Hacer el build para las instancia de los microservicios utilizados con el comando:
