@@ -26,7 +26,7 @@ class Usuario(db.Model):
 class UsuarioSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Usuario
-        load_instance = True        
+        load_instance = True
 usuarioSchema = UsuarioSchema()
 
 with app.app_context():
@@ -38,7 +38,7 @@ def registrar_usuario():
     global servicio_disponible
     if not servicio_disponible:
         return jsonify({"error": "El servicio de registro no está disponible"}), 503
-    
+
     usuario = request.json
     contrasenia = usuario['password'].encode('utf-8')
     hashed_password = bcrypt.hashpw(contrasenia, bcrypt.gensalt())
@@ -47,21 +47,27 @@ def registrar_usuario():
 
     if buscar_usuario is not None:
         return jsonify({"error": "El usuario ya existe"}), 400
-    
+
     db.session.add(user)
     db.session.commit()
     url2fa = pyotp.totp.TOTP(user.key2fa).provisioning_uri(name=user.username, issuer_name="SportApp")
     datos_cola = {
-        'username': request.json['username'], 
+        'username': request.json['username'],
         'password': request.json['password'],
         'key2fa': user.key2fa,
         }
     q.enqueue(registrar_usuario_cola, datos_cola)
+
+    inicio_llave = url2fa.index('secret=') + len('secret=')
+    final_llave = url2fa.index('&issuer')
+
+    url2fa = url2fa[inicio_llave:final_llave]
+
     return jsonify({
         "mensaje": "Usuario registrado exitosamente, prosiga con la configuración de 2FA.",
         "urlConfiguracion2FA": f"http://localhost:5002/autorizador-comandos/2fa-login/{user.username}",
         "usuario": user.username,
-        "url2fa": url2fa
+        "url2fa key": url2fa
         }), 201
 
 @app.route('/usuario-comandos-ins-1/health', methods=['GET'])

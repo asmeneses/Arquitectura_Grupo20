@@ -4,7 +4,6 @@ from flask_sqlalchemy import SQLAlchemy
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from redis import Redis
 from rq import Queue
-import requests
 import bcrypt
 import pyotp
 from flask_qrcode import QRcode
@@ -40,7 +39,7 @@ with app.app_context():
 @app.route('/autorizador-comandos/login', methods=['POST'])
 def login():
     user = Usuario.query.filter_by(username=request.json['username']).first()
-    contrasenia = request.json['password'].encode('utf-8')        
+    contrasenia = request.json['password'].encode('utf-8')
     key2fa = request.json['key2fa']
 
     if user is None:
@@ -48,7 +47,7 @@ def login():
 
     if bcrypt.checkpw(contrasenia, user.password) is False:
         return jsonify({"msg": "Credenciales incorrectas", 'user': usuarioSchema.dump(user)}), 401
-    
+
     if verify_2fa(user, key2fa) is False:
         return jsonify({"msg": "Autenticacion 2FA fallida"}), 401
 
@@ -56,7 +55,6 @@ def login():
     refresh_token = create_refresh_token(identity=user.username)
     return jsonify(access_token=access_token, refresh_token=refresh_token)
 
-    
 
 @app.route('/autorizador-comandos/refresh', methods=['POST'])
 @jwt_required(refresh=True)
@@ -69,21 +67,14 @@ def refresh():
 @app.route('/autorizador-comandos/2fa-login/<username>', methods=['GET'])
 def setup_2fa(username):
     user = Usuario.query.filter_by(username=username).first()
-    #user_secret = pyotp.random_base32()
     url = pyotp.totp.TOTP(user.key2fa).provisioning_uri(name=username, issuer_name="SportApp")
     return render_template("setup_2fa.html", qr_url=url)
 
-#@app.route('/autorizador-comandos/2fa-login', methods=['POST'])
+
 def verify_2fa(user: Usuario, key2fa: str):
-    print(f'El usuario tiene el secreto: {user_secret}')
     totp = pyotp.TOTP(user.key2fa)
     puede_acceder = totp.verify(key2fa)
     return puede_acceder
-    print(f'El usuario puede acceder: {puede_acceder}')
-    if puede_acceder:
-        return jsonify({"msg": "Autenticación exitosa"}), 200
-    else:
-        return jsonify({"msg": "Autenticación fallida"}), 401
 
 
 if __name__ == '__main__':
