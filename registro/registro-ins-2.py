@@ -1,9 +1,10 @@
 from flask import Flask, request, jsonify
 from redis import Redis
 from rq import Queue
-import sqlalchemy
+from flask_sqlalchemy import SQLAlchemy
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from datetime import datetime
-from registrar_usuario_background import registrar_usuario_background
+from sender import registrar_usuario_cola
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////mnt/registro.db'
@@ -13,6 +14,21 @@ usuarios_registrados = []
 servicio_disponible = True  # Simula la disponibilidad del servicio
 
 q = Queue(connection=Redis(host='redis', port=6379, db=0))
+db = SQLAlchemy(app)
+
+class Usuario(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100))
+
+class UsuarioSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Usuario
+        load_instance = True
+usuarioSchema = UsuarioSchema()
+
+with app.app_context():
+    db.create_all()
 
 
 @app.route('/usuario-comandos-ins-2/registro', methods=['POST'])
@@ -20,8 +36,10 @@ def registrar_usuario():
     global servicio_disponible
     if not servicio_disponible:
         return jsonify({"error": "El servicio de registro no está disponible"}), 503
-    usuario = request.json
-    q.enqueue(registrar_usuario_background, usuario, datetime.utcnow())
+    usuario = Usuario(username=usuario['username'], password=usuario['password'])
+    db.session.add(usuario)
+    db.session.commit()
+    q.enqueue(registrar_usuario_cola, usuarioSchema.dump(usuario))
     return jsonify({"mensaje": "Usuario registrado exitosamente", "usuario": usuario}), 201
 
 @app.route('/usuario-comandos-ins-2/health', methods=['GET'])

@@ -12,7 +12,10 @@ servicio_autorizador = 'http://autorizador1:5002/autorizador-comandos'
 def registrar_usuario():
     global servicio_registro
     peticion = post(f'{servicio_registro}/registro', json=request.json).json()
-    return jsonify(peticion)
+    if peticion.get('error'):
+        return jsonify(peticion), 400
+    else:
+        return jsonify(post(f'{servicio_autorizador}/login', json=request.json).json())
 
 @app.route('/api/login', methods=['POST'])
 def login():

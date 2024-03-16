@@ -1,29 +1,48 @@
 from flask import Flask, jsonify, request
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity
+from flask_sqlalchemy import SQLAlchemy
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
+from redis import Redis
+from rq import Queue
+
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sportapp.db'
 app.config['JWT_SECRET_KEY'] = 'frase-secreta'
 app.config['PROPAGATE_EXCEPTIONS'] = True
 
 jwt = JWTManager(app)
+db = SQLAlchemy(app)
+q = Queue(connection=Redis(host='redis', port=6379, db=0))
+
+class Usuario(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100))
+
+class UsuarioSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Usuario
+        load_instance = True
+usuarioSchema = UsuarioSchema()
+
+with app.app_context():
+    db.create_all()
 
 @app.route('/autorizador-comandos/login', methods=['POST'])
 def login():
-    username = request.json.get('username', None)
-    password = request.json.get('password', None)
-
-    access_token = create_access_token(identity=username)
-    refresh_token = create_refresh_token(identity=username)
-    return jsonify(access_token=access_token, refresh_token=refresh_token)
-    # user = db.find_by_username(username)  # Asumiendo que tienes una función para buscar usuarios
-
-    if user and user.check_password(password):
+    #access_token = create_access_token(identity=username)
+    #refresh_token = create_refresh_token(identity=username)
+    #return jsonify(access_token=access_token, refresh_token=refresh_token)
+    user = Usuario.query.filter(Usuario.username == request.json["username"],
+                                       Usuario.password == request.json["password"]).first()    
+    if user is not None:
         # Crear tokens de acceso y actualización
-        access_token = create_access_token(identity=username)
-        refresh_token = create_refresh_token(identity=username)
+        access_token = create_access_token(identity=user.username)
+        refresh_token = create_refresh_token(identity=user.username)
         return jsonify(access_token=access_token, refresh_token=refresh_token)
 
-    return jsonify({"msg": "Credenciales incorrectas"}), 401
+    return jsonify({"msg": "Credenciales incorrectas", 'user': usuarioSchema.dump(Usuario.query.all()), 'peticion': request.json}, 'registro'), 401
 
 @app.route('/autorizador-comandos/refresh', methods=['POST'])
 @jwt_required(refresh=True)
