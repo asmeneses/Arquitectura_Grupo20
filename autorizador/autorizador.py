@@ -12,8 +12,8 @@ app.config['JWT_SECRET_KEY'] = 'frase-secreta'
 app.config['PROPAGATE_EXCEPTIONS'] = True
 
 jwt = JWTManager(app)
-db = SQLAlchemy(app)
 q = Queue(connection=Redis(host='redis', port=6379, db=0))
+db = SQLAlchemy(app)
 
 class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -31,11 +31,9 @@ with app.app_context():
 
 @app.route('/autorizador-comandos/login', methods=['POST'])
 def login():
-    #access_token = create_access_token(identity=username)
-    #refresh_token = create_refresh_token(identity=username)
-    #return jsonify(access_token=access_token, refresh_token=refresh_token)
     user = Usuario.query.filter(Usuario.username == request.json["username"],
-                                       Usuario.password == request.json["password"]).first()    
+                                Usuario.password == request.json["password"]).first()
+
     if user is not None:
         # Crear tokens de acceso y actualización
         access_token = create_access_token(identity=user.username)

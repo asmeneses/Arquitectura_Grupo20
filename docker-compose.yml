@@ -2,13 +2,13 @@ version: "3.2"
 services:
   redis:
     image: redis
-    volumes: 
+    volumes:
       - ./data:/data
 
   worker:
     volumes:
-      - ./registro/:/mnt/
-    build: ./registro
+      - ./autorizador/:/mnt/
+    build: ./autorizador
     working_dir: /backend/
     command: rq worker -u 'redis://redis/0'
     depends_on:
@@ -47,8 +47,9 @@ services:
     build: ./autorizador
     working_dir: /backend/
     command: sh startup.sh
-    # depends_on:
-    #   - nginx
+    depends_on:
+      - registro1
+      - registro2
 
   registro1:
     container_name: registro1
@@ -81,3 +82,4 @@ services:
       - redis
       - registro1
       - registro2
+      - autorizador1
