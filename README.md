@@ -63,7 +63,39 @@ Use la dirección IP que aparece después de inet.
 Una vez finalice la instalación se crearán los contenedores de docker y empezarán a correr con los diferentes servicios.
 
 # Descripción del experimento 2:
-* [Video demostración]()
+* [Video demostración](https://uniandes-my.sharepoint.com/:v:/g/personal/a_menesess_uniandes_edu_co/EWuHWw3g84NKrUemf4VsXbIBH1csqF8Wn2te-x-MBlA_uw?e=79qBa4&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D)
+
+1. clonar el repositorio en un espacio del area local de trabajo y abrirlo.
+ 
+2. Hacer el build para las instancia de los microservicios utilizados con el comando:
+
+   ```
+    docker-compose build --no-cache
+   ```
+   
+
+3. Levantar las instancias de docker con el comando:
+
+   ```
+   docker-compose up -d
+   ```
+
+Endpoints para replicar el experimento 2 utilizando Postman:
+
+- Registro (tipo 'POST'):
+  http://localhost:5002/api/registro
+{
+    "username": "MiNuevoUsuario3",
+    "password": "1234"
+}
+
+- Login (tipo 'POST'):
+  http://localhost:5002/api/login
+{
+    "username": "MiNuevoUsuario1",
+    "password": "1234",
+    "key2fa": 397214
+}
 
 # Descripción del experimento 1:
 
