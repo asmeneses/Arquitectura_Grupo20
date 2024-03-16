@@ -10,3 +10,4 @@ rq
 flask-jwt-extended
 bcrypt
 pyotp
+flask_qrcode

@@ -6,6 +6,7 @@ from rq import Queue
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from sender import registrar_usuario_cola
+import pyotp
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////mnt/sportapp.db'
@@ -20,6 +21,7 @@ class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.LargeBinary)
+    key2fa = db.Column(db.String(100), nullable=True, default=None)
 
 class UsuarioSchema(SQLAlchemyAutoSchema):
     class Meta:
@@ -40,7 +42,7 @@ def registrar_usuario():
     usuario = request.json
     contrasenia = usuario['password'].encode('utf-8')
     hashed_password = bcrypt.hashpw(contrasenia, bcrypt.gensalt())
-    user = Usuario(username=usuario['username'], password=hashed_password)
+    user = Usuario(username=usuario['username'], password=hashed_password, key2fa=pyotp.random_base32())
     buscar_usuario = Usuario.query.filter(Usuario.username == user.username).first()
 
     if buscar_usuario is not None:
@@ -48,9 +50,18 @@ def registrar_usuario():
     
     db.session.add(user)
     db.session.commit()
-
-    q.enqueue(registrar_usuario_cola, {'username': request.json['username'], 'password': request.json['password']})
-    return jsonify({"mensaje": "Usuario registrado exitosamente, prosiga con el login", "usuario": user.username}), 201
+    url2fa = pyotp.totp.TOTP(user.key2fa).provisioning_uri(name=user.username, issuer_name="SportApp")
+    datos_cola = {
+        'username': request.json['username'], 
+        'password': request.json['password'],
+        'key2fa': user.key2fa,
+        }
+    q.enqueue(registrar_usuario_cola, datos_cola)
+    return jsonify({
+        "mensaje": "Usuario registrado exitosamente, prosiga con el login",
+        "usuario": user.username,
+        "url2fa": url2fa
+        }), 201
 
 @app.route('/usuario-comandos-ins-1/health', methods=['GET'])
 def health_check():
