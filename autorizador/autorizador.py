@@ -1,11 +1,13 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from redis import Redis
 from rq import Queue
 import bcrypt
+import pyotp
 
+user_secret = -1
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////mnt/auth.db'
@@ -37,7 +39,6 @@ def login():
     contrasenia = request.json['password'].encode('utf-8')
 
     if user is not None and bcrypt.checkpw(contrasenia, user.password):
-        # Crear tokens de acceso y actualización
         access_token = create_access_token(identity=user.username)
         refresh_token = create_refresh_token(identity=user.username)
         return jsonify(access_token=access_token, refresh_token=refresh_token)
@@ -50,6 +51,27 @@ def refresh():
     current_user = get_jwt_identity()
     new_token = create_access_token(identity=current_user)
     return jsonify(access_token=new_token)
+
+
+@app.route('/autorizador-comandos/2fa-login/<username>', methods=['GET'])
+def setup_2fa(username):
+    global user_secret
+    user_secret = pyotp.random_base32()
+    url = pyotp.totp.TOTP(user_secret).provisioning_uri(name=username, issuer_name="SportApp")
+    return render_template("setup_2fa.html", qr_url=url)
+
+@app.route('/autorizador-comandos/2fa-login/', methods=['POST'])
+def verify_2fa():
+    global user_secret
+    print(f'El usuario tiene el secreto: {user_secret}')
+    totp = pyotp.TOTP(user_secret)
+    token = request.json['key']
+    puede_acceder = totp.verify(token)
+    print(f'El usuario puede acceder: {puede_acceder}')
+    if puede_acceder:
+        return jsonify({"msg": "Autenticación exitosa"}), 200
+    else:
+        return jsonify({"msg": "Autenticación fallida"}), 401
 
 
 if __name__ == '__main__':
