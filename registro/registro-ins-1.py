@@ -58,7 +58,8 @@ def registrar_usuario():
         }
     q.enqueue(registrar_usuario_cola, datos_cola)
     return jsonify({
-        "mensaje": "Usuario registrado exitosamente, prosiga con el login",
+        "mensaje": "Usuario registrado exitosamente, prosiga con la configuración de 2FA.",
+        "urlConfiguracion2FA": f"http://localhost:5002/autorizador-comandos/2fa-login/{user.username}",
         "usuario": user.username,
         "url2fa": url2fa
         }), 201
