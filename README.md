@@ -62,7 +62,11 @@ Use la dirección IP que aparece después de inet.
 
 Una vez finalice la instalación se crearán los contenedores de docker y empezarán a correr con los diferentes servicios.
 
-# Descripción del experimento:
+# Descripción del experimento 2:
+* [Video demostración]()
+
+# Descripción del experimento 1:
+
 
 Podrá ver diferentes instancias de docker:
 - nginx-1: API Gateway
