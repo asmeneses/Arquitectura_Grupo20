@@ -69,9 +69,6 @@ def refresh():
 @app.route('/autorizador-comandos/2fa-login/<username>', methods=['GET'])
 def setup_2fa(username):
     user = Usuario.query.filter_by(username=username).first()
-    user.key2fa = pyotp.random_base32()
-    db.session.add(user)
-    db.session.commit()
     #user_secret = pyotp.random_base32()
     url = pyotp.totp.TOTP(user.key2fa).provisioning_uri(name=username, issuer_name="SportApp")
     return render_template("setup_2fa.html", qr_url=url)
