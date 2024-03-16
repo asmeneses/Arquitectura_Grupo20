@@ -83,20 +83,23 @@ Una vez finalice la instalación se crearán los contenedores de docker y empeza
 Endpoints para replicar el experimento 2 utilizando Postman:
 
 - Registro (tipo 'POST'):
+```
   http://localhost:5002/api/registro
 {
     "username": "MiNuevoUsuario3",
     "password": "1234"
 }
+```
 
 - Login (tipo 'POST'):
+```
   http://localhost:5002/api/login
 {
     "username": "MiNuevoUsuario1",
     "password": "1234",
     "key2fa": 397214
 }
-
+```
 # Descripción del experimento 1:
 
 
