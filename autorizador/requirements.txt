@@ -8,3 +8,4 @@ requests
 redis
 rq
 flask-jwt-extended
+bcrypt

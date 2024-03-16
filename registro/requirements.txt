@@ -7,3 +7,4 @@ marshmallow-sqlalchemy
 requests
 redis
 rq
+bcrypt

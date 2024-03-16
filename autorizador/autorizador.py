@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from redis import Redis
 from rq import Queue
+import bcrypt
 
 
 app = Flask(__name__)
@@ -18,13 +19,13 @@ db = SQLAlchemy(app)
 class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String(100))
+    password = db.Column(db.LargeBinary)
 
 class UsuarioSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Usuario
         load_instance = True
-        exclude = ('password',)
+        #exclude = ('password',)
 usuarioSchema = UsuarioSchema()
 
 with app.app_context():
@@ -33,14 +34,15 @@ with app.app_context():
 @app.route('/autorizador-comandos/login', methods=['POST'])
 def login():
     user = Usuario.query.filter_by(username=request.json['username']).first()
+    contrasenia = request.json['password'].encode('utf-8')
 
-    if user is not None and user.password == (request.json['password']):
+    if user is not None and bcrypt.checkpw(contrasenia, user.password):
         # Crear tokens de acceso y actualización
         access_token = create_access_token(identity=user.username)
         refresh_token = create_refresh_token(identity=user.username)
         return jsonify(access_token=access_token, refresh_token=refresh_token)
 
-    return jsonify({"msg": "Credenciales incorrectas"}), 401
+    return jsonify({"msg": "Credenciales incorrectas", 'user': usuarioSchema.dump(user)}), 401
 
 @app.route('/autorizador-comandos/refresh', methods=['POST'])
 @jwt_required(refresh=True)
