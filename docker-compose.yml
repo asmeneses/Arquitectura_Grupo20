@@ -5,15 +5,6 @@ services:
     volumes:
       - ./data:/data
 
-  worker:
-    volumes:
-      - ./autorizador/:/mnt/
-    build: ./autorizador
-    working_dir: /backend/
-    command: rq worker -u 'redis://redis/0'
-    depends_on:
-      - redis
-
   nginx:
     image: nginx:latest
     ports:
@@ -46,7 +37,7 @@ services:
       - ./autorizador/:/mnt/
     build: ./autorizador
     working_dir: /backend/
-    command: sh startup.sh
+    command: sh startup.sh        
     depends_on:
       - registro1
       - registro2

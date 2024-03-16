@@ -7,7 +7,7 @@ from rq import Queue
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sportapp.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////mnt/auth.db'
 app.config['JWT_SECRET_KEY'] = 'frase-secreta'
 app.config['PROPAGATE_EXCEPTIONS'] = True
 
@@ -24,6 +24,7 @@ class UsuarioSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Usuario
         load_instance = True
+        exclude = ('password',)
 usuarioSchema = UsuarioSchema()
 
 with app.app_context():
@@ -31,16 +32,15 @@ with app.app_context():
 
 @app.route('/autorizador-comandos/login', methods=['POST'])
 def login():
-    user = Usuario.query.filter(Usuario.username == request.json["username"],
-                                Usuario.password == request.json["password"]).first()
+    user = Usuario.query.filter_by(username=request.json['username']).first()
 
-    if user is not None:
+    if user is not None and user.password == (request.json['password']):
         # Crear tokens de acceso y actualización
         access_token = create_access_token(identity=user.username)
         refresh_token = create_refresh_token(identity=user.username)
         return jsonify(access_token=access_token, refresh_token=refresh_token)
 
-    return jsonify({"msg": "Credenciales incorrectas", 'user': usuarioSchema.dump(Usuario.query.all()), 'peticion': request.json}, 'registro'), 401
+    return jsonify({"msg": "Credenciales incorrectas"}), 401
 
 @app.route('/autorizador-comandos/refresh', methods=['POST'])
 @jwt_required(refresh=True)

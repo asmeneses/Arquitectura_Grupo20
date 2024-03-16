@@ -14,8 +14,7 @@ def registrar_usuario():
     peticion = post(f'{servicio_registro}/registro', json=request.json).json()
     if peticion.get('error'):
         return jsonify(peticion), 400
-    else:
-        return jsonify(post(f'{servicio_autorizador}/login', json=request.json).json())
+    return jsonify(peticion), 201
 
 @app.route('/api/login', methods=['POST'])
 def login():

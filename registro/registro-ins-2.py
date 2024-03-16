@@ -7,7 +7,7 @@ from datetime import datetime
 from sender import registrar_usuario_cola
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////mnt/registro.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////mnt/registro2.db'
 #db = sqlalchemy(app)
 
 usuarios_registrados = []
